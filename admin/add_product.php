@@ -142,5 +142,6 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
     </form>
 </div>
 </main>
+<script src="../public/js/add_product.js"></script>
 </body>
 </html>
