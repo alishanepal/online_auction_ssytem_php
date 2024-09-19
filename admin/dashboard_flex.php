@@ -3,59 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Movie Recommendation System</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="../public/css/admin.css">
 </head>
 <body>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">Admin Dashboard</a>
-        <div class="ml-auto d-flex align-items-center">
-            <span class="navbar-text text-light mr-3">Hello, Admin</span>
-            <a href="../process/logout.php" class="btn btn-danger">Logout</a>
-        </div>
-    </nav>
-
-    <!-- Main Container -->
-    <div class="container-fluid">
-        <div class="row">
-
-            <!-- Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                Users
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Create Auction
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Insert Image
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Insert Description
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4><a class="navbar-brand" href="dashboard.php">Admin Dashboard</a></h4>
+        <ul class="nav flex-column">
+        <li class="nav-item">
+                <a class="nav-link" href="add_product.php">Add Product</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="products_report.php">Product Report</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Category
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="categoryDropdown">           
+                    <li><a class="dropdown-item" href="category_report.php">Paintings</a></li>
+                    <li><a class="dropdown-item" href="category_report.php">jwellery</a></li>
+                    <li><a class="dropdown-item" href="category_report.php">Antiques</a></li>
+                </ul>
+            </li>
+           <!-- <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="subcategoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Subcategory
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="subcategoryDropdown">
+                    <li><a class="dropdown-item" href="#subcategory-1">Subcategory 1</a></li>
+                    <li><a class="dropdown-item" href="#subcategory-2">Subcategory 2</a></li>
+                </ul>
+            </li>-->
+            <li class="nav-item">
+                <a class="nav-link" href="#bidders-report">Bidders Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#participants-report">Participants Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#winners-report">Winners Report</a>
+            </li>
+        </ul>
     </div>
 
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Navbar -->
+        <nav class="navbar navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="dashboard.php">Dashboard</a>
+                <div class="d-flex">
+                <?php
+                session_start();
+                // Check if the session is set
+                if (isset($_SESSION['username'])) {
+                    // Display the username from the session
+                    echo '<span class="navbar-text text-light mr-3">Hello, '. htmlspecialchars($_SESSION['username']) . '</span>';
+                }
+                ?>
+                <a href="../process/logout.php" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4 mt-4">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom mt-4">
+  </div>
     <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
