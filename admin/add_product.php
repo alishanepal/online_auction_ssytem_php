@@ -1,5 +1,8 @@
 <?php
-include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
+include 'dashboard_flex.php'; 
+include '../includes/connection.php'; // Assuming this is your PHP file with the sidebar
+$sql = "SELECT category_id, category_name FROM category";
+$result = $conn->query($sql); 
 ?>
 <style>
   /* Ensure the form is scrollable */
@@ -31,7 +34,7 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
 </style>
 
 <div class="scrollable-form-container">
-    <form id="auctionForm" action="submit_auction.php" method="post" enctype="multipart/form-data">
+    <form id="auctionForm" action="../process/submit_auction.php" method="post" enctype="multipart/form-data">
         <!-- Product Information Section -->
         <h3>Product Information</h3>
         <div class="form-row">
@@ -46,15 +49,31 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
                 <div class="error" id="productImagesError"></div>
             </div>
             <div class="form-group col-md-6">
-                <label for="category">Category</label>
-                <select class="form-control" id="category" name="category" required>
-                    <option value="">Select Category</option>
-                    <option value="painting">Painting</option>
-                    <option value="jewelry">Jewelry</option>
-                    <option value="antique">Antique</option>
-                </select>
-                <div class="error" id="categoryError"></div>
-            </div>
+    <label for="category">Category</label>
+    <select class="form-control" id="category" name="category" required>
+        <option value="">Select Category</option>
+        <?php
+        // Check if the query returned any results
+        if ($result->num_rows > 0) {
+            // Output data for each row
+            while ($row = $result->fetch_assoc()) {
+                // Set the 'selected' attribute if this is the currently selected category
+                $selected = ($currentCategoryName === $row['category_name']) ? 'selected' : '';
+                // Output the <option> element
+                echo '<option value="' . htmlspecialchars($row['category_id']) . '" ' . $selected . '>' . htmlspecialchars($row['category_name']) . '</option>';
+            }
+        } else {
+            echo '<option value="">No categories available</option>';
+        }
+        ?>
+    </select>
+    <div class="error" id="categoryError"></div>
+</div>
+
+<?php
+// Close the database connection
+$conn->close();
+?>
         </div>
 
         <!-- Dynamic Fields Based on Category Selection -->
@@ -64,9 +83,9 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
                 <label for="artist">Artist</label>
                 <input type="text" class="form-control" id="artist" name="artist">
                 <div class="error" id="artistError"></div>
-                <label for="medium">Medium</label>
-                <input type="text" class="form-control" id="medium" name="medium" placeholder="e.g. Oil, Watercolor">
-                <div class="error" id="mediumError"></div>
+                <label for="technique">technique</label>
+                <input type="text" class="form-control" id="technique" name="technique" placeholder="e.g. Oil, Watercolor">
+                <div class="error" id="techniqueError"></div>
                 <label for="yearCreated">Year Created</label>
                 <input type="number" class="form-control" id="yearCreated" name="yearCreated" min="1000" max="9999">
                 <div class="error" id="yearCreatedError"></div>
@@ -93,10 +112,15 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
                 <label for="historicalPeriod">Historical Period</label>
                 <input type="text" class="form-control" id="historicalPeriod" name="historicalPeriod" placeholder="e.g. Victorian, Ming Dynasty">
                 <div class="error" id="historicalPeriodError"></div>
-                <label for="condition">Condition</label>
-                <textarea class="form-control" id="antiqueCondition" name="antiqueCondition" rows="2"></textarea>
-                <div class="error" id="antiqueConditionError"></div>
+                <label for="conditionn">conditionn</label>
+                <textarea class="form-control" id="antiqueconditionn" name="antiqueconditionn" rows="2"></textarea>
+                <div class="error" id="antiqueconditionnError"></div>
             </div>
+            <div class="form-group">
+            <label for="subcategoryName">Subcategory Name:</label>
+            <input type="text" id="subcategoryName" name="subcategoryName" class="form-control" required>
+            <div class="error" id="subcategoryNameError"></div>
+        </div>
         </div>
 
         <!-- Auction Details Section -->
@@ -137,11 +161,15 @@ include 'dashboard_flex.php'; // Assuming this is your PHP file with the sidebar
             <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter a detailed description of the product" required></textarea>
             <div class="error" id="descriptionError"></div>
         </div>
-
+        <div class="form-group">
+        <label for="keywords">Keywords:</label>
+        <input type="text" id="keywords" name="keywords" class="form-control" placeholder="Enter keywords separated by commas">
+    </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
 </main>
-<script src="../public/js/add_product.js"></script>
+<script src="../public/js/add_product.js">
+</script>
 </body>
-</html>
+</html> 

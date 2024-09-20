@@ -30,15 +30,6 @@
                     <li><a class="dropdown-item" href="category_report.php">Antiques</a></li>
                 </ul>
             </li>
-           <!-- <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="subcategoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Subcategory
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="subcategoryDropdown">
-                    <li><a class="dropdown-item" href="#subcategory-1">Subcategory 1</a></li>
-                    <li><a class="dropdown-item" href="#subcategory-2">Subcategory 2</a></li>
-                </ul>
-            </li>-->
             <li class="nav-item">
                 <a class="nav-link" href="#bidders-report">Bidders Report</a>
             </li>

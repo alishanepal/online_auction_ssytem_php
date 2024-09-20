@@ -4,11 +4,11 @@ document.getElementById('category').addEventListener('change', function() {
     document.getElementById('jewelry-fields').style.display = 'none';
     document.getElementById('antique-fields').style.display = 'none';
 
-    if (category === 'painting') {
+    if (category === '1') {
         document.getElementById('painting-fields').style.display = 'block';
-    } else if (category === 'jewelry') {
+    } else if (category === '2') {
         document.getElementById('jewelry-fields').style.display = 'block';
-    } else if (category === 'antique') {
+    } else if (category === '3') {
         document.getElementById('antique-fields').style.display = 'block';
     }
 });
