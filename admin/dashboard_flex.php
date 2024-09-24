@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Movie Recommendation System</title>
+    <title>Admin Dashboard - Online Auction System</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- External CSS -->
@@ -25,9 +25,9 @@
                     Category
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="categoryDropdown">           
-                    <li><a class="dropdown-item" href="category_report.php">Paintings</a></li>
-                    <li><a class="dropdown-item" href="category_report.php">jwellery</a></li>
-                    <li><a class="dropdown-item" href="category_report.php">Antiques</a></li>
+                    <li><a class="dropdown-item" href="painting.php">Paintings</a></li>
+                    <li><a class="dropdown-item" href="jewelry.php">jewelry</a></li>
+                    <li><a class="dropdown-item" href="antique.php">Antiques</a></li>
                 </ul>
             </li>
             <li class="nav-item">

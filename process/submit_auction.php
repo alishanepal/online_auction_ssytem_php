@@ -94,11 +94,13 @@ $stmt->execute();
 
 // Insert subcategory data if provided
 if (!empty($subcategoryName)) {
-    $sql = "INSERT INTO subcategory (subcategory_name, category_id) VALUES (?, ?)";
+    $sql = "INSERT INTO subcategory (subcategory_name, product_id, category_id) VALUES (?,?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('si', $subcategoryName, $categoryId);
+    // The correct data types: 's' for string (subcategory_name), 'i' for integer (product_id), and 'i' for integer (category_id)
+    $stmt->bind_param('sii', $subcategoryName, $productId, $categoryId);
     $stmt->execute();
 }
+
 
 // Insert product images into the `product_images` table, ensuring `product_id` is used as a foreign key
 if (!empty($uploadedImages)) {

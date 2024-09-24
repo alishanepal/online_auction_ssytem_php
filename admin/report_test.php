@@ -63,6 +63,7 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,6 +80,7 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
         }
     </script>
 </head>
+
 <body>
     <div class="container mt-5">
         <h2>Product Report</h2>
@@ -112,7 +114,7 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
                 echo '<td>' . htmlspecialchars($product['keywords']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['subcategory_name']) . '</td>';
                 echo '<td><img src="' . htmlspecialchars($product['image_url']) . '" alt="' . htmlspecialchars($product['product_name']) . '" width="100"></td>';
-                
+
                 // Determine status class
                 $statusClass = '';
                 switch (htmlspecialchars($product['status'])) {
@@ -128,12 +130,12 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
                     default:
                         $statusClass = 'text-secondary'; // Default color if needed
                 }
-                
+
                 echo '<td><span class="' . $statusClass . '">' . htmlspecialchars($product['status']) . '</span></td>';  // Display Status
                 echo '<td>';
                 echo '<button class="btn btn-sm" onclick="toggleDetails(' . htmlspecialchars($product['product_id']) . ')" style="background-color: #ff7f50; color: white; border-radius: 5px; transition: background-color 0.3s;">View Details</button>';
                 echo '<div id="details-' . htmlspecialchars($product['product_id']) . '" style="display:none; margin-top: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background-color: #f8f9fa;">';
-            
+
                 // Display details based on product type
                 if (!empty($product['artist'])) {
                     echo '<p><strong>Artist:</strong> ' . htmlspecialchars($product['artist']) . '</p>';
@@ -150,17 +152,29 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
                     echo '<p><strong>Weight:</strong> ' . htmlspecialchars($product['weight']) . '</p>';
                     echo '<p><strong>Gemstones:</strong> ' . htmlspecialchars($product['gemstones']) . '</p>';
                 }
-            
-                echo '</div></td>';
-                echo '</tr>';
+
+                // New Actions Column with Links
+                echo '<td>';
+                // Edit button with link
+                echo '<a href="edit_product.php?product_id=' . htmlspecialchars($product['product_id']) . '">';
+                echo '<button class="btn btn-warning btn-sm action-btn">Edit</button>';
+                echo '</a>';
+
+                // Delete button with link
+                echo '<a href="delete_product.php?product_id=' . htmlspecialchars($product['product_id']) . '" onclick="return confirm(\'Are you sure you want to delete this product?\')">';
+                echo '<button class="btn btn-danger btn-sm action-btn">Delete</button>';
+                echo '</a>';
+                echo '</td>';
+
             }
-            
+
 
             echo '</tbody></table>';
         }
         ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
+
 </html>
