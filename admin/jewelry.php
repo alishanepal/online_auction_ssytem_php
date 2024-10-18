@@ -27,7 +27,8 @@ $productReportQuery = "
     LEFT JOIN 
         category c ON p.category_id = c.category_id
     LEFT JOIN 
-        subcategory sc ON sc.subcategory_id = p.subcategory_id
+        subcategory sc ON sc.product_id = p.product_id
+
     LEFT JOIN 
         auctions a ON p.product_id = a.product_id
     LEFT JOIN 

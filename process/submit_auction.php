@@ -77,14 +77,7 @@ if ($categoryId == 1) {
     $stmt->bind_param('isss', $productId, $origin, $historicalPeriod, $antiqueCondition);
     $stmt->execute();
 }
-// Determine the auction status
-if ( $currentDateTime >= $startDate && $currentDateTime <= $endDate) {
-    $status = 'live';
-} elseif ($currentDateTime < $startDate) {
-    $status = 'upcoming';
-} else {
-    $status = 'closed';
-}
+$status = 'upcoming';
 
 // Insert auction details into the `auctions` table with status
 $sql = "INSERT INTO auctions (product_id, start_date, end_date, status) VALUES (?, ?, ?, ?)";
@@ -117,4 +110,4 @@ $stmt->close();
 $conn->close();
 
 echo "Product, auction, and associated details have been successfully submitted!";
-?>
+

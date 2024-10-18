@@ -91,4 +91,3 @@ $stmt->close();
 $conn->close();
 
 echo "Product and auction details have been successfully submitted!";
-?>
