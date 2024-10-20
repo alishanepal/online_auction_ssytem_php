@@ -2,180 +2,291 @@
 session_start();
 include '../includes/connection.php'; // Ensure the database connection is included
 
-// Query for Upcoming Auctions (status is 'upcoming')
-$upcomingAuctions = mysqli_query($conn, "
-    SELECT p.product_id, p.product_name, pi.image_url, a.start_date
-    FROM auctions a
-    JOIN product p ON p.product_id = a.product_id
-    JOIN product_images pi ON pi.product_id = p.product_id
-    WHERE a.status = 'upcoming'
-");
+// Get the product_id from the URL
+if (isset($_GET['product_id'])) {
+    $product_id = $_GET['product_id'];
 
-// Query for Live Auctions (status is 'live')
-$liveAuctions = mysqli_query($conn, "
-    SELECT p.product_id, p.product_name, pi.image_url, a.end_date
-    FROM auctions a
-    JOIN product p ON p.product_id = a.product_id
-    JOIN product_images pi ON pi.product_id = p.product_id
-    WHERE a.status = 'live'
-");
+    // Fetch basic product details from product, auctions, category, and product_images tables
+    $query = "
+        SELECT p.product_name, p.starting_bid, p.description, p.keywords, p.category_id,
+               pi.image_url, 
+               a.start_date, a.end_date, a.status,
+               c.category_name
+        FROM product p
+        JOIN product_images pi ON pi.product_id = p.product_id
+        JOIN auctions a ON a.product_id = p.product_id
+        JOIN category c ON c.category_id = p.category_id
+        WHERE p.product_id = $product_id
+        LIMIT 1
+    ";
 
-// Query for Closed Auctions (status is 'closed')
-$closedAuctions = mysqli_query($conn, "
-    SELECT p.product_id, p.product_name, pi.image_url, a.end_date
-    FROM auctions a
-    JOIN product p ON p.product_id = a.product_id
-    JOIN product_images pi ON pi.product_id = p.product_id
-    WHERE a.status = 'closed'
-");
+    $result = mysqli_query($conn, $query);
+
+    // Check if a product is found
+    if (mysqli_num_rows($result) > 0) {
+        $product = mysqli_fetch_assoc($result);
+
+        // Initialize the variable for the current bid
+        $current_bid = $product['starting_bid']; // Start with the starting bid
+
+        // Check if the user has placed a bid only if user_id is set
+        $hasBid = false; // Default to false
+        if (isset($_SESSION['user_id'])) { 
+            $user_id = $_SESSION['user_id']; 
+            $hasBidQuery = "
+            SELECT COUNT(*) AS bid_count FROM bids 
+            WHERE user_id = $user_id AND product_id = $product_id
+            ";
+            $hasBidResult = mysqli_query($conn, $hasBidQuery);
+            $hasBidData = mysqli_fetch_assoc($hasBidResult);
+            $hasBid = $hasBidData['bid_count'] > 0; // true if user has placed at least one bid
+        }
+
+        // Fetch the current highest bid for the product
+        $highestBidQuery = "SELECT MAX(bid_amount) AS highest_bid FROM bids WHERE product_id = $product_id";
+        $highestBidResult = mysqli_query($conn, $highestBidQuery);
+        $row = mysqli_fetch_assoc($highestBidResult);
+        $highest_bid = $row['highest_bid'] ?? 0; // Default to 0 if there are no bids
+
+        // Update the current_bid to the highest bid if available
+        if ($highest_bid > 0) {
+            $current_bid = $highest_bid; // Update to current highest bid if it exists
+        }
+
+        // Fetch additional details based on the category (paintings, antiques, or jewelry)
+        $category_id = $product['category_id'];
+        $extra_details = [];
+
+        // Adjust the queries based on category_id and the corrected fields
+        if ($category_id == 1) { 
+            $extra_query = "SELECT artist, year_created, technique FROM paintings WHERE product_id = $product_id";
+        } elseif ($category_id == 2) { 
+            $extra_query = "SELECT material, gemstones, weight FROM jewelry WHERE product_id = $product_id";
+        } elseif ($category_id == 3) { 
+            $extra_query = "SELECT origin, historical_period, conditionn FROM antiques WHERE product_id = $product_id";
+        }
+
+        // Execute the extra query for specific product category
+        if (isset($extra_query)) {
+            $extra_result = mysqli_query($conn, $extra_query);
+            if (mysqli_num_rows($extra_result) > 0) {
+                $extra_details = mysqli_fetch_assoc($extra_result);
+            }
+        }
+
+        // Fetch bid history for the product
+        $bidHistoryQuery = "
+        SELECT bid_amount, bid_time
+        FROM bids
+        WHERE product_id = $product_id
+        ORDER BY bid_time DESC
+        ";
+
+        // Execute the query
+        $bidHistoryResult = mysqli_query($conn, $bidHistoryQuery);
+        if (!$bidHistoryResult) {
+            echo "Error fetching bid history: " . mysqli_error($conn);
+        }
+        $bidHistory = [];
+        while ($row = mysqli_fetch_assoc($bidHistoryResult)) {
+            $bidHistory[] = $row;
+        }
+
+        // Fetch bid count to show in the button
+        $bidCountQuery = "SELECT COUNT(*) AS bid_count FROM bids WHERE product_id = $product_id";
+        $bidCountResult = mysqli_query($conn, $bidCountQuery);
+        $bidCountData = mysqli_fetch_assoc($bidCountResult);
+        $bid_count = $bidCountData['bid_count'];
+    } else {
+        echo "Product not found.";
+        exit();
+    }
+} else {
+    echo "Invalid product ID.";
+    exit();
+}
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Auction System</title>
+    <title><?php echo $product['product_name']; ?> - Details</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- External CSS -->
     <link rel="stylesheet" href="../public/css/styles.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Online Auction</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="scrollToSection('live')">Live Auction</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="scrollToSection('upcoming')">Upcoming Auction</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="scrollToSection('closed')">Closed Auction</a>
+                        <a class="nav-link" href="../index.php">Home</a>
                     </li>
                 </ul>
-                <form class="d-flex me-3">
-                    <input class="form-control me-2" type="search" placeholder="Search items" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
-
-                <div class="d-flex">
-                    <?php
-                    // Check if the user is logged in by checking the session
-                    if (isset($_SESSION['username'])) {
-                        // User is logged in, show username and logout button
-                        echo '<span class="navbar-text me-3">Hello, ' . $_SESSION['username'] . '</span>';
-                        echo '<button class="btn btn-outline-danger me-2" onclick="window.location.href=\'../process/logout.php\';">Logout</button>';
-                    } else {
-                        // User is not logged in, show login and sign up buttons
-                        echo '<button class="btn btn-outline-success me-2" onclick="window.location.href=\'login.php\';">Login</button>';
-                        echo '<button class="btn btn-outline-success me-2" onclick="window.location.href=\'signup.php\';">Sign Up</button>';
-                    }
-                    ?>
-                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Second Navbar for Category Navigation -->
-    <nav class="navbar navbar-expand-lg" style="background-color:#EDE8DC">
-        <div class="container-fluid">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="../admin/painting.php">Paintings</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="../admin/jewelry.php">Jewelry</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="../admin/antique.php">Antiques</a>
-                </li>
-            </ul>
-            <!-- Align "Become a Bidder" to the right only if logged in -->
-            <ul class="navbar-nav ms-auto">
-                <?php if (isset($_SESSION['username'])): // Check if user is logged in ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="become_bidder.php">Become a Bidder</a>
-                    </li>
-                <?php endif; ?>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- Auction Sections -->
+    <!-- Main Product Details Section -->
     <div class="container mt-5">
-        <!-- Upcoming Auctions Section -->
-        <h2 id="upcoming">Upcoming Auctions</h2>
         <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($upcomingAuctions)) { ?>
-                <div class="col-md-3">
-                    <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
-                        <div class="card">
-                            <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
-                            <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
-                                <p class="card-text">Starts: <?php echo $row['start_date']; ?></p>
-                            </div>
-                        </div>
-                    </a>
+            <!-- Left Column: Product Image -->
+            <div class="col-md-6">
+                <div class="card">
+                    <img src="<?php echo $product['image_url']; ?>" class="card-img-top"
+                        alt="<?php echo $product['product_name']; ?>">
+                    <div class="card-body">
+                        <h5 class="card-title"><?php echo $product['product_name']; ?></h5>
+
+                        <p class="card-text"><?php echo $product['description']; ?></p>
+                    </div>
+
                 </div>
-            <?php } ?>
+            </div>
+
+            <!-- Right Column: Product Details -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Auction Information</h5>
+                        <p class="card-text"><strong>Category:</strong> <?php echo $product['category_name']; ?></p>
+                        <p class="card-text"><strong>Starting Bid:</strong> $<?php echo $product['starting_bid']; ?></p>
+                        <p class="card-text"><strong>Status:</strong> <?php echo $product['status']; ?></p>
+
+                        <!-- Display category-specific details -->
+                        <?php if ($category_id == 1): ?>
+                            <h5 class="card-title mt-4">Painting Details</h5>
+                            <p class="card-text"><strong>Artist:</strong> <?php echo $extra_details['artist']; ?></p>
+                            <p class="card-text"><strong>Year Created:</strong>
+                                <?php echo $extra_details['year_created']; ?></p>
+                            <p class="card-text"><strong>Technique:</strong> <?php echo $extra_details['technique']; ?></p>
+                        <?php elseif ($category_id == 3): ?>
+                            <h5 class="card-title mt-4">Antique Details</h5>
+                            <p class="card-text"><strong>Origin:</strong> <?php echo $extra_details['origin']; ?></p>
+                            <p class="card-text"><strong>Historical Period:</strong>
+                                <?php echo $extra_details['historical_period']; ?></p>
+                            <p class="card-text"><strong>Condition:</strong> <?php echo $extra_details['conditionn']; ?></p>
+                        <?php elseif ($category_id == 2): ?>
+                            <h5 class="card-title mt-4">Jewelry Details</h5>
+                            <p class="card-text"><strong>Material:</strong> <?php echo $extra_details['material']; ?></p>
+                            <p class="card-text"><strong>Gemstones:</strong> <?php echo $extra_details['gemstones']; ?></p>
+                            <p class="card-text"><strong>Weight:</strong> <?php echo $extra_details['weight']; ?> g</p>
+                        <?php endif; ?>
+
+
+
+                        <!-- Bid Button and Input Field -->
+                        <?php if ($product['status'] == 'live'): ?>
+                            <div>
+                                <strong>Current Auction Price:
+                                    $<?php echo number_format($current_bid, 2); ?></strong>
+                            </div>
+
+                            <?php if (!isset($_SESSION['user_id'])): ?>
+                                <!-- User not logged in -->
+                                <button class="btn btn-primary" id="placeBidButton" onclick="promptLogin()">Place Bid</button>
+
+                            <?php else: ?>
+                                <!-- User logged in -->
+                                <?php if (!$hasBid): ?>
+                                    <button class="btn btn-primary" id="placeBidButton" onclick="confirmParticipation()">Place
+                                        Bid</button>
+                                    <div id="bidInputContainer" style="display: none; margin-top: 10px;">
+                                        <input type="number" id="bidAmount" placeholder="Enter your bid amount"
+                                            class="form-control">
+                                        <button class="btn btn-success mt-2"
+                                            onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit
+                                            Bid</button>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- User has already placed a bid -->
+                                    <div id="bidInputContainer" style="margin-top: 10px;">
+                                        <input type="number" id="bidAmount" placeholder="Enter your bid amount"
+                                            class="form-control">
+                                        <button class="btn btn-success mt-2"
+                                            onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit
+                                            Bid</button>
+                                    </div>
+                                <?php endif; ?>
+
+                            <?php endif; ?>
+
+                        <?php else: ?>
+                            <button class="btn btn-secondary" disabled>Bidding Closed</button>
+                        <?php endif; ?>
+
+
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Live Auctions Section -->
-        <h2 id="live">Live Auctions</h2>
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($liveAuctions)) { ?>
-                <div class="col-md-3">
-                    <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
-                        <div class="card">
-                            <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
-                            <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
-                                <p class="card-text">Ends: <?php echo $row['end_date']; ?></p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            <?php } ?>
-        </div>
+        <!-- Button to Open Bid History Modal -->
+        <button type="button" class="btn btn-info mt-4" data-bs-toggle="modal" data-bs-target="#bidHistoryModal">
+            View Bid History (<?php echo $bid_count; ?>)
+        </button>
 
-        <!-- Closed Auctions Section -->
-        <h2 id="closed">Closed Auctions</h2>
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($closedAuctions)) { ?>
-                <div class="col-md-3">
-                    <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
-                        <div class="card">
-                            <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
-                            <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
-                                <p class="card-text">Ended: <?php echo $row['end_date']; ?></p>
-                            </div>
-                        </div>
-                    </a>
+        <!-- Bid History Modal -->
+        <div class="modal fade" id="bidHistoryModal" tabindex="-1" aria-labelledby="bidHistoryModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="bidHistoryModalLabel">Bid History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Bid Amount</th>
+                                    <th scope="col">Bid Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (count($bidHistory) > 0): ?>
+                                    <?php foreach ($bidHistory as $bid): ?>
+                                        <tr>
+                                            <td>$<?php echo number_format($bid['bid_amount'], 2); ?></td>
+                                            <td><?php echo date('Y-m-d H:i:s', strtotime($bid['bid_time'])); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="2">No bids placed yet.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+                    </div>
                 </div>
-            <?php } ?>
+            </div>
         </div>
     </div>
 
-    <!-- JavaScript to Handle Smooth Scroll -->
-    <script>
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            section.scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
+    </div>
 
     <!-- Bootstrap JS and Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="../public/js/scripts.js"></script>
 </body>
+
 </html>

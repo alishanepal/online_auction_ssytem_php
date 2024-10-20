@@ -8,29 +8,35 @@ if (isset($_GET['product_id'])) {
 
     // Fetch basic product details from product, auctions, category, and product_images tables
     $query = "
-        SELECT p.product_name, p.starting_bid, p.description, p.keywords, p.category_id,
-               pi.image_url, 
-               a.start_date, a.end_date, a.status,
-               c.category_name
-        FROM product p
-        JOIN product_images pi ON pi.product_id = p.product_id
-        JOIN auctions a ON a.product_id = p.product_id
-        JOIN category c ON c.category_id = p.category_id
-        WHERE p.product_id = $product_id
-        LIMIT 1
-    ";
+    SELECT p.*,  -- Select all fields from the product table
+           pi.image_url, 
+           a.start_date, 
+           a.end_date, 
+           a.status,
+           c.category_name
+    FROM product p
+    JOIN product_images pi ON pi.product_id = p.product_id
+    JOIN auctions a ON a.product_id = p.product_id
+    JOIN category c ON c.category_id = p.category_id
+    WHERE p.product_id = $product_id
+    LIMIT 1
+";
 
-    // Execute the query
+
     $result = mysqli_query($conn, $query);
 
     // Check if a product is found
     if (mysqli_num_rows($result) > 0) {
         $product = mysqli_fetch_assoc($result);
 
+        // Initialize the variable for the current bid
+        $current_bid = $product['starting_bid'];// Start with the starting bid
+        $interval= $product['minimum_price_interval'];
+
         // Check if the user has placed a bid only if user_id is set
         $hasBid = false; // Default to false
-        if (isset($_SESSION['user_id'])) { // Check if user is logged in
-            $user_id = $_SESSION['user_id']; // Only set if user is logged in
+        if (isset($_SESSION['user_id'])) { 
+            $user_id = $_SESSION['user_id']; 
             $hasBidQuery = "
             SELECT COUNT(*) AS bid_count FROM bids 
             WHERE user_id = $user_id AND product_id = $product_id
@@ -44,18 +50,24 @@ if (isset($_GET['product_id'])) {
         $highestBidQuery = "SELECT MAX(bid_amount) AS highest_bid FROM bids WHERE product_id = $product_id";
         $highestBidResult = mysqli_query($conn, $highestBidQuery);
         $row = mysqli_fetch_assoc($highestBidResult);
-        $current_highest_bid = $row['highest_bid'] ?? 0; // Default to 0 if there are no bids
+        $highest_bid = $row['highest_bid'] ?? 0; // Default to 0 if there are no bids
+
+        // Update the current_bid to the highest bid if available
+        if ($highest_bid > 0) {
+            $current_bid = $highest_bid; // Update to current highest bid if it exists
+            $must_bid=$highest_bid+$interval;
+        }
 
         // Fetch additional details based on the category (paintings, antiques, or jewelry)
         $category_id = $product['category_id'];
         $extra_details = [];
 
         // Adjust the queries based on category_id and the corrected fields
-        if ($category_id == 1) { // Assuming category_id = 1 is for paintings
+        if ($category_id == 1) { 
             $extra_query = "SELECT artist, year_created, technique FROM paintings WHERE product_id = $product_id";
-        } elseif ($category_id == 2) { // Assuming category_id = 2 is for jewelry
+        } elseif ($category_id == 2) { 
             $extra_query = "SELECT material, gemstones, weight FROM jewelry WHERE product_id = $product_id";
-        } elseif ($category_id == 3) { // Assuming category_id = 3 is for antiques
+        } elseif ($category_id == 3) { 
             $extra_query = "SELECT origin, historical_period, conditionn FROM antiques WHERE product_id = $product_id";
         }
 
@@ -99,7 +111,8 @@ if (isset($_GET['product_id'])) {
     exit();
 }
 ?>
- 
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -111,7 +124,6 @@ if (isset($_GET['product_id'])) {
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- External CSS -->
-    <link rel="stylesheet" href="../public/css/styles.css">
 </head>
 
 <body>
@@ -143,10 +155,10 @@ if (isset($_GET['product_id'])) {
                         alt="<?php echo $product['product_name']; ?>">
                     <div class="card-body">
                         <h5 class="card-title"><?php echo $product['product_name']; ?></h5>
-                         
+
                         <p class="card-text"><?php echo $product['description']; ?></p>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -157,6 +169,7 @@ if (isset($_GET['product_id'])) {
                         <h5 class="card-title">Auction Information</h5>
                         <p class="card-text"><strong>Category:</strong> <?php echo $product['category_name']; ?></p>
                         <p class="card-text"><strong>Starting Bid:</strong> $<?php echo $product['starting_bid']; ?></p>
+                        <p class="card-text"><strong>minimum interval:</strong> $<?php echo $product['minimum_price_interval']; ?></p>
                         <p class="card-text"><strong>Status:</strong> <?php echo $product['status']; ?></p>
 
                         <!-- Display category-specific details -->
@@ -179,53 +192,57 @@ if (isset($_GET['product_id'])) {
                             <p class="card-text"><strong>Weight:</strong> <?php echo $extra_details['weight']; ?> g</p>
                         <?php endif; ?>
 
-                       
 
-                    <!-- Bid Button and Input Field -->
+<!-- Bid Button and Input Field -->
 <?php if ($product['status'] == 'live'): ?>
     <div>
-        <strong>Current Auction Price: $<?php echo number_format($current_highest_bid, 2); ?></strong>
+        <strong>Current Auction Price: $<?php echo number_format($current_bid, 2); ?></strong>
     </div>
-    
+
     <?php if (!isset($_SESSION['user_id'])): ?>
         <!-- User not logged in -->
         <button class="btn btn-primary" id="placeBidButton" onclick="promptLogin()">Place Bid</button>
-        
+
     <?php else: ?>
         <!-- User logged in -->
         <?php if (!$hasBid): ?>
             <button class="btn btn-primary" id="placeBidButton" onclick="confirmParticipation()">Place Bid</button>
             <div id="bidInputContainer" style="display: none; margin-top: 10px;">
-                <input type="number" id="bidAmount" placeholder="Enter your bid amount" class="form-control">
-                <button class="btn btn-success mt-2" onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
+                <input type="number" id="bidAmount" placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
+                    class="form-control" data-current-bid="<?php echo $current_bid; ?>"
+       data-minimum-price-interval="<?php echo $interval; ?>">
+                <button class="btn btn-success mt-2"
+                    onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
             </div>
         <?php else: ?>
             <!-- User has already placed a bid -->
             <div id="bidInputContainer" style="margin-top: 10px;">
-                <input type="number" id="bidAmount" placeholder="Enter your bid amount" class="form-control">
-                <button class="btn btn-success mt-2" onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
+                <input type="number" id="bidAmount" placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
+                    class="form-control" data-current-bid="<?php echo $current_bid; ?>"            
+       data-minimum-price-interval="<?php echo $interval; ?>">
+                <button class="btn btn-success mt-2"
+                    onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
             </div>
         <?php endif; ?>
-        
+
     <?php endif; ?>
 
 <?php else: ?>
     <button class="btn btn-secondary" disabled>Bidding Closed</button>
 <?php endif; ?>
-
-
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Button to Open Bid History Modal -->
         <button type="button" class="btn btn-info mt-4" data-bs-toggle="modal" data-bs-target="#bidHistoryModal">
             View Bid History (<?php echo $bid_count; ?>)
         </button>
 
         <!-- Bid History Modal -->
-        <div class="modal fade" id="bidHistoryModal" tabindex="-1" aria-labelledby="bidHistoryModalLabel" aria-hidden="true">
+        <div class="modal fade" id="bidHistoryModal" tabindex="-1" aria-labelledby="bidHistoryModalLabel"
+            aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -267,57 +284,9 @@ if (isset($_GET['product_id'])) {
     </div>
 
     <!-- Bootstrap JS and Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-
-    <script>
-         function promptLogin() {
-        if (confirm("You need to log in to place a bid. Would you like to go to the login page?")) {
-            // Redirect to the login page
-            window.location.href = 'login.php'; // Adjust the URL as needed
-        }
-    }
-       function confirmParticipation() {
-    if (confirm("Are you sure you want to participate in this auction?")) {
-        // Hide the Place Bid button
-        document.getElementById('placeBidButton').style.display = 'none';
-        // Show the bid input field
-        document.getElementById('bidInputContainer').style.display = 'block';
-    }
-}
-
-function submitBid(userId, productId) {
-    const bidAmount = document.getElementById('bidAmount').value;
-
-    // Perform a simple validation
-    if (!bidAmount || parseFloat(bidAmount) <= 0) {
-        alert('Please enter a valid bid amount.');
-        return;
-    }
-
-    // Make an AJAX call to submit the bid
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '../process/place_bid.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            // Handle the server response
-            const response = xhr.responseText; // or parse JSON if needed
-            alert(response); // Display response or handle accordingly
-
-            // Refresh the page to show the updated state
-            location.reload(); // Refresh the page after the bid is submitted
-        } else {
-            alert('An error occurred while placing your bid. Please try again.');
-        }
-    };
-
-    // Send the user ID, product ID, and bid amount to the server
-    xhr.send('user_id=' + userId + '&product_id=' + productId + '&bid_amount=' + bidAmount);
-}
-
-    </script>
+    <script src="../public/js/product_details.js"></script>
 </body>
 
 </html>

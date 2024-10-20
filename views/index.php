@@ -98,54 +98,49 @@ $closedAuctions = mysqli_query($conn, "
                     <a class="nav-link" href="../admin/antique.php">Antiques</a>
                 </li>
             </ul>
-            <!-- Align "Become a Bidder" to the right only if logged in -->
-            <ul class="navbar-nav ms-auto">
-                <?php if (isset($_SESSION['username'])): // Check if user is logged in ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="become_bidder.php">Become a Bidder</a>
-                    </li>
-                <?php endif; ?>
-            </ul>
         </div>
     </nav>
 
     <!-- Auction Sections -->
-    <div class="container mt-5">
-        <!-- Upcoming Auctions Section -->
-        <h2 id="upcoming">Upcoming Auctions</h2>
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($upcomingAuctions)) { ?>
-                <div class="col-md-3">
-                    <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
-                        <div class="card">
-                            <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
-                            <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
-                                <p class="card-text">Starts: <?php echo $row['start_date']; ?></p>
-                            </div>
+<div class="container mt-5">
+    <!-- Upcoming Auctions Section -->
+    <h2 id="upcoming">Upcoming Auctions</h2>
+    <div class="row">
+        <?php while ($row = mysqli_fetch_assoc($upcomingAuctions)) { ?>
+            <div class="col-md-3">
+                <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
+                    <div class="card">
+                        <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
+                            <p class="card-text">Starts: <span class="countdown" data-start="<?php echo strtotime($row['start_date']); ?>" data-end="<?php echo strtotime($row['end_date']); ?>"></span></p>
                         </div>
-                    </a>
-                </div>
-            <?php } ?>
-        </div>
+                    </div>
+                </a>
+            </div>
+        <?php } ?>
+    </div>
 
-        <!-- Live Auctions Section -->
-        <h2 id="live">Live Auctions</h2>
-        <div class="row">
-            <?php while ($row = mysqli_fetch_assoc($liveAuctions)) { ?>
-                <div class="col-md-3">
-                    <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
-                        <div class="card">
-                            <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
-                            <div class="card-body">
-                                <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
-                                <p class="card-text">Ends: <?php echo $row['end_date']; ?></p>
-                            </div>
-                        </div>
-                    </a>
+   <!-- Live Auctions Section -->
+<h2 id="live">Live Auctions</h2>
+<div class="row">
+    <?php while ($row = mysqli_fetch_assoc($liveAuctions)) { ?>
+        <div class="col-md-3">
+            <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="text-decoration-none">
+                <div class="card">
+                    <img src="<?php echo $row['image_url']; ?>" class="card-img-top" alt="<?php echo $row['product_name']; ?>">
+                    <div class="card-body">
+                        <h5 class="card-title"><?php echo $row['product_name']; ?></h5>
+                        <p class="card-text">Ends: <span class="countdown" data-end="<?php echo strtotime($row['end_date']); ?>"></span></p>
+                        <!-- Bid Now button -->
+                        <a href="product_details.php?product_id=<?php echo $row['product_id']; ?>" class="btn btn-primary">Place Bid</a>
+                    </div>
                 </div>
-            <?php } ?>
+            </a>
         </div>
+    <?php } ?>
+</div>
+
 
         <!-- Closed Auctions Section -->
         <h2 id="closed">Closed Auctions</h2>
@@ -178,4 +173,45 @@ $closedAuctions = mysqli_query($conn, "
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
+<script>
+    // Function to update the countdown timer
+    function updateCountdown() {
+        var countdownElements = document.querySelectorAll('.countdown');
+        countdownElements.forEach(function (element) {
+            var startTime = element.getAttribute('data-start');
+            var endTime = element.getAttribute('data-end');
+            var currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+
+            if (startTime && currentTime < startTime) {
+                // If the auction hasn't started yet, countdown to start time
+                var timeLeft = startTime - currentTime;
+                element.innerHTML = formatTimeLeft(timeLeft);
+            } else if (endTime && currentTime < endTime) {
+                // If the auction is live, countdown to end time
+                var timeLeft = endTime - currentTime;
+                element.innerHTML = formatTimeLeft(timeLeft);
+            } else {
+                // If the auction has ended
+                element.innerHTML = "Auction ended";
+            }
+        });
+    }
+
+    // Helper function to format time left in days, hours, minutes, seconds
+    function formatTimeLeft(seconds) {
+        var days = Math.floor(seconds / (60 * 60 * 24));
+        var hours = Math.floor((seconds % (60 * 60 * 24)) / (60 * 60));
+        var minutes = Math.floor((seconds % (60 * 60)) / 60);
+        var seconds = seconds % 60;
+
+        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    // Update countdown every second
+    setInterval(updateCountdown, 1000);
+
+    // Initial call to display the countdown on page load
+    updateCountdown();
+</script>
+
 </html>

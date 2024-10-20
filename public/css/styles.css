@@ -79,3 +79,18 @@ form {
     font-size: 0.9rem;
     color: #666;
 }
+.card {
+    width: 100%; /* Ensure the card takes full width of the column */
+    height: 300px; /* Set a fixed height for the card */
+    overflow: hidden; /* Hide overflow for content that exceeds the height */
+    position: relative; /* Positioning context for absolute children */
+}
+
+.card-img-top {
+    width: 100%; /* Full width */
+    height: 200px; /* Set a fixed height for the image */
+    object-fit: cover; /* Make the image cover the area without distortion */
+    position: absolute; /* Allow positioning to fit inside the card */
+    top: 0; /* Position at the top */
+    left: 0; /* Position at the left */
+}
