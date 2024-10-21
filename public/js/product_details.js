@@ -1,3 +1,22 @@
+
+document.addEventListener('DOMContentLoaded', function() {
+    const placeBidButton = document.getElementById('placeBidButton');
+    placeBidButton.addEventListener('click', promptLogin);
+});
+
+function promptLogin() {
+    if (confirm("You need to log in to place a bid. Would you like to go to the login page?")) {
+        window.location.href = 'login.php'; // Adjust the URL as needed
+    }
+}
+function confirmParticipation() {
+    if (confirm("Are you sure you want to participate in this auction?")) {
+        // Hide the Place Bid button
+        document.getElementById('placeBidButton').style.display = 'none';
+        // Show the bid input field
+        document.getElementById('bidInputContainer').style.display = 'block';
+    }
+}
 function submitBid(userId, productId) {
     const bidInput = document.getElementById('bidAmount');
     const currentBid = parseFloat(bidInput.getAttribute('data-current-bid')); // Get current bid from a data attribute
@@ -9,6 +28,8 @@ function submitBid(userId, productId) {
     console.log("Bid Amount:", bidAmount);
     console.log("Minimum Price Interval:", minimumPriceInterval);
 
+
+    
     // Check if bid amount is valid
     if (isNaN(bidAmount) || bidAmount < currentBid) {
         alert("Your bid must be at least $" + currentBid.toFixed(2));

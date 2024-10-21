@@ -1,4 +1,5 @@
 <?php
+
 include '../includes/connection.php';
 // Ensure the database connection is included
 
@@ -61,27 +62,23 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
 }
 ?>
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Report</title>
+    <title>Product Report - Online Auction System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-        function toggleDetails(productId) {
-            var detailsDiv = document.getElementById("details-" + productId);
-            if (detailsDiv.style.display === "none") {
-                detailsDiv.style.display = "block";
-            } else {
-                detailsDiv.style.display = "none";
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="container mt-5">
+         <!-- Navigation Button to Dashboard -->
+         <a href="dashboard.php" class="btn btn-success mb-2">Back to Dashboard</a>
         <h2>Product Report</h2>
+        
+       
 
         <?php
         // Loop through each category and display its products
@@ -105,14 +102,15 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
             foreach ($products as $product) {
                 echo '<tr>';
                 echo '<td>' . htmlspecialchars($product['product_id']) . '</td>';
+                echo '<td><img src="' . htmlspecialchars($product['image_url']) . '" alt="' . htmlspecialchars($product['product_name']) . '" width="100"></td>';
+                
                 echo '<td>' . htmlspecialchars($product['product_name']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['starting_bid']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['reserve_price']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['description']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['keywords']) . '</td>';
                 echo '<td>' . htmlspecialchars($product['subcategory_name']) . '</td>';
-                echo '<td><img src="' . htmlspecialchars($product['image_url']) . '" alt="' . htmlspecialchars($product['product_name']) . '" width="100"></td>';
-                
+               
                 // Determine status class
                 $statusClass = '';
                 switch (htmlspecialchars($product['status'])) {
@@ -154,13 +152,23 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
                 echo '</div></td>';
                 echo '</tr>';
             }
-            
-
             echo '</tbody></table>';
         }
         ?>
 
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        <script>
+        function toggleDetails(productId) {
+            var detailsDiv = document.getElementById("details-" + productId);
+            if (detailsDiv.style.display === "none") {
+                detailsDiv.style.display = "block";
+            } else {
+                detailsDiv.style.display = "none";
+            }
+        }
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    </div>
 </body>
 </html>

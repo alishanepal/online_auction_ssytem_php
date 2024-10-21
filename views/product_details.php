@@ -31,12 +31,12 @@ if (isset($_GET['product_id'])) {
 
         // Initialize the variable for the current bid
         $current_bid = $product['starting_bid'];// Start with the starting bid
-        $interval= $product['minimum_price_interval'];
+        $interval = $product['minimum_price_interval'];
 
         // Check if the user has placed a bid only if user_id is set
         $hasBid = false; // Default to false
-        if (isset($_SESSION['user_id'])) { 
-            $user_id = $_SESSION['user_id']; 
+        if (isset($_SESSION['user_id'])) {
+            $user_id = $_SESSION['user_id'];
             $hasBidQuery = "
             SELECT COUNT(*) AS bid_count FROM bids 
             WHERE user_id = $user_id AND product_id = $product_id
@@ -55,7 +55,7 @@ if (isset($_GET['product_id'])) {
         // Update the current_bid to the highest bid if available
         if ($highest_bid > 0) {
             $current_bid = $highest_bid; // Update to current highest bid if it exists
-            $must_bid=$highest_bid+$interval;
+            $must_bid = $highest_bid + $interval;
         }
 
         // Fetch additional details based on the category (paintings, antiques, or jewelry)
@@ -63,11 +63,11 @@ if (isset($_GET['product_id'])) {
         $extra_details = [];
 
         // Adjust the queries based on category_id and the corrected fields
-        if ($category_id == 1) { 
+        if ($category_id == 1) {
             $extra_query = "SELECT artist, year_created, technique FROM paintings WHERE product_id = $product_id";
-        } elseif ($category_id == 2) { 
+        } elseif ($category_id == 2) {
             $extra_query = "SELECT material, gemstones, weight FROM jewelry WHERE product_id = $product_id";
-        } elseif ($category_id == 3) { 
+        } elseif ($category_id == 3) {
             $extra_query = "SELECT origin, historical_period, conditionn FROM antiques WHERE product_id = $product_id";
         }
 
@@ -169,7 +169,8 @@ if (isset($_GET['product_id'])) {
                         <h5 class="card-title">Auction Information</h5>
                         <p class="card-text"><strong>Category:</strong> <?php echo $product['category_name']; ?></p>
                         <p class="card-text"><strong>Starting Bid:</strong> $<?php echo $product['starting_bid']; ?></p>
-                        <p class="card-text"><strong>minimum interval:</strong> $<?php echo $product['minimum_price_interval']; ?></p>
+                        <p class="card-text"><strong>minimum interval:</strong>
+                            $<?php echo $product['minimum_price_interval']; ?></p>
                         <p class="card-text"><strong>Status:</strong> <?php echo $product['status']; ?></p>
 
                         <!-- Display category-specific details -->
@@ -193,7 +194,7 @@ if (isset($_GET['product_id'])) {
                         <?php endif; ?>
 
 
-<!-- Bid Button and Input Field -->
+                       <!-- Bid Button, Timer, and Input Field -->
 <?php if ($product['status'] == 'live'): ?>
     <div>
         <strong>Current Auction Price: $<?php echo number_format($current_bid, 2); ?></strong>
@@ -208,28 +209,65 @@ if (isset($_GET['product_id'])) {
         <?php if (!$hasBid): ?>
             <button class="btn btn-primary" id="placeBidButton" onclick="confirmParticipation()">Place Bid</button>
             <div id="bidInputContainer" style="display: none; margin-top: 10px;">
-                <input type="number" id="bidAmount" placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
+                <input type="number" id="bidAmount"
+                    placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
                     class="form-control" data-current-bid="<?php echo $current_bid; ?>"
-       data-minimum-price-interval="<?php echo $interval; ?>">
+                    data-minimum-price-interval="<?php echo $interval; ?>">
                 <button class="btn btn-success mt-2"
                     onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
             </div>
         <?php else: ?>
-            <!-- User has already placed a bid -->
             <div id="bidInputContainer" style="margin-top: 10px;">
-                <input type="number" id="bidAmount" placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
-                    class="form-control" data-current-bid="<?php echo $current_bid; ?>"            
-       data-minimum-price-interval="<?php echo $interval; ?>">
+                <input type="number" id="bidAmount"
+                    placeholder="Your bid must be equal or more than $<?php echo number_format($must_bid, 2); ?>"
+                    class="form-control" data-current-bid="<?php echo $current_bid; ?>"
+                    data-minimum-price-interval="<?php echo $interval; ?>">
                 <button class="btn btn-success mt-2"
                     onclick="submitBid(<?php echo $_SESSION['user_id']; ?>, <?php echo $product_id; ?>)">Submit Bid</button>
             </div>
         <?php endif; ?>
-
     <?php endif; ?>
+
+<?php elseif ($product['status'] == 'upcoming'): ?>
+    <div>
+        <strong>Auction starts in: </strong>
+        <span id="timer-<?php echo $product_id; ?>"></span>
+    </div>
+    <script>
+        // Timer logic for upcoming auction
+        function startTimer(productId, startDate) {
+            const countdownElement = document.getElementById(`timer-${productId}`);
+            const auctionStartTime = new Date(startDate).getTime();
+
+            const timerInterval = setInterval(function () {
+                const now = new Date().getTime();
+                const timeLeft = auctionStartTime - now;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    countdownElement.innerHTML = "Auction is now live!";
+                    location.reload(); // Reload to switch the status to live
+                } else {
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                }
+            }, 1000);
+        }
+
+        // Initialize timer on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            startTimer(<?php echo $product_id; ?>, '<?php echo $product['start_date']; ?>');
+        });
+    </script>
 
 <?php else: ?>
     <button class="btn btn-secondary" disabled>Bidding Closed</button>
 <?php endif; ?>
+
                     </div>
                 </div>
             </div>
