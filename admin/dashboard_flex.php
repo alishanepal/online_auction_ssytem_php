@@ -124,22 +124,29 @@
   <div class="sidebar">
     <h2>Dashboard</h2>
     <ul>
-      <li><a href="#">Home</a></li>
+      <li><a href="Dashboard.php">Home</a></li>
       <li><a href="users.php">Users</a></li>
       <li><a href="add_product.php">Add Product</a></li>
       <li><a href="products_report.php">Product Report</a></li> 
       <li><a href="bidders_report.php">Bidders Report</a></li>
-      <li><a href="#">Winners Report</a></li>
+      <li><a href="winner_report.php">Winners Report</a></li>
       <li><a href="../process/logout.php">Logout</a></li>
     </ul>
   </div>
+
+  <?php
+session_start(); 
+
+// Check if the username is set in the session; fallback to 'Admin' if not available.
+$username = isset($_SESSION['username']) ? $_SESSION['username'] : 'Admin';
+?>
 
   <!-- Top Navigation Bar -->
   <div class="top-nav">
     <div>Admin Dashboard</div>
     <div class="nav-item">
-      <span>Welcome, Admin</span>
-      <img src="https://via.placeholder.com/40" alt="Profile Picture">
+      <span>Welcome,  <?= htmlspecialchars($username) ?></span>
+      
     </div>
   </div>
 

@@ -62,9 +62,10 @@ if (isset($_GET['user_id'])) {
                 echo '</div>';
             }
 
-            // Add Edit Profile button (to open modal)
-            echo '<div style="text-align: center; margin-top: 20px;">';
-            echo '<button class="btn btn-primary" data-toggle="modal" data-target="#editProfileModal">Edit Profile</button>'; // Open Edit Profile modal
+            // Add buttons for viewing bidding history and editing profile
+            echo '<div class="d-flex justify-content-center mt-4">';
+            echo '<button class="btn btn-info mr-3" data-toggle="modal" data-target="#biddingHistoryModal">View Bidding History</button>';
+            echo '<button class="btn btn-primary" data-toggle="modal" data-target="#editProfileModal">Edit Profile</button>';
             echo '</div>';
             echo '</div>'; // Close outer div
         } else {
@@ -76,6 +77,29 @@ if (isset($_GET['user_id'])) {
     } else {
         echo "Error preparing statement: " . $conn->error;
     }
+
+    // SQL query to fetch the user's bidding history grouped by product
+    $biddingHistoryQuery = "
+    SELECT 
+        p.product_name, 
+        b.bid_amount, 
+        b.bid_time 
+    FROM 
+        bids b
+    JOIN 
+        product p ON b.product_id = p.product_id
+    WHERE 
+        b.user_id = ?
+    ORDER BY 
+        p.product_name, b.bid_time DESC"; // Group by product and order by time
+
+    // Prepare and execute the query
+    if ($stmtBids = $conn->prepare($biddingHistoryQuery)) {
+        $stmtBids->bind_param("i", $user_id);
+        $stmtBids->execute();
+        $bidsResult = $stmtBids->get_result();
+    }
+
 } else {
     echo '<p style="text-align:center; color: red;">No user ID specified.</p>';
 }
@@ -154,33 +178,61 @@ $conn->close();
                 <input type="text" class="form-control" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" required>
             </div>
             <div class="form-group">
+                <label for="address">Address</label>
+                <textarea class="form-control" id="address" name="address" required><?php echo htmlspecialchars($user['address']); ?></textarea>
+            </div>
+            <div class="form-group">
                 <label for="phone">Phone</label>
                 <input type="text" class="form-control" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
             </div>
             <div class="form-group">
-                <label for="address">Address</label>
-                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address']); ?>" required>
-            </div>
-            <div class="form-group">
-                <label for="id_no">ID No</label>
-                <input type="text" class="form-control" id="id_no" name="id_no" value="<?php echo htmlspecialchars($user['id_no']); ?>" required>
-            </div>
-            <div class="form-group">
-                <label for="account_no">Account No</label>
-                <input type="text" class="form-control" id="account_no" name="account_no" value="<?php echo htmlspecialchars($user['account_no']); ?>" required>
-            </div>
-            <div class="form-group">
                 <label for="profile_photo">Profile Photo</label>
-                <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
-                <small class="form-text text-muted">Leave blank to keep current photo.</small>
+                <input type="file" class="form-control" id="profile_photo" name="profile_photo">
             </div>
             <div class="form-group">
                 <label for="id_photo">ID Photo</label>
-                <input type="file" class="form-control" id="id_photo" name="id_photo" accept="image/*">
-                <small class="form-text text-muted">Leave blank to keep current photo.</small>
+                <input type="file" class="form-control" id="id_photo" name="id_photo">
             </div>
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Bidding History -->
+<div class="modal fade" id="biddingHistoryModal" tabindex="-1" role="dialog" aria-labelledby="biddingHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="biddingHistoryModalLabel">Bidding History</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <?php if ($bidsResult->num_rows > 0): ?>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Bid Amount</th>
+                <th>Bid Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php while ($bid = $bidsResult->fetch_assoc()): ?>
+                <tr>
+                  <td><?php echo htmlspecialchars($bid['product_name']); ?></td>
+                  <td><?php echo htmlspecialchars($bid['bid_amount']); ?></td>
+                  <td><?php echo htmlspecialchars($bid['bid_time']); ?></td>
+                </tr>
+              <?php endwhile; ?>
+            </tbody>
+          </table>
+        <?php else: ?>
+          <p>No bidding history available.</p>
+        <?php endif; ?>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -189,7 +241,7 @@ $conn->close();
   </div>
 </div>
 
-<!-- Include jQuery and Bootstrap JS -->
+<!-- Include Bootstrap and jQuery scripts -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.11/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
