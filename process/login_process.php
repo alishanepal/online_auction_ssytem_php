@@ -33,10 +33,12 @@ if ($result->num_rows === 1) {
         }
         exit();
     } else {
-        echo "<p style='color: red;'>Incorrect password.</p>";
+        // Incorrect password alert
+        echo "<script>alert('Incorrect password.'); window.history.back();</script>";
     }
 } else {
-    echo "<p style='color: red;'>No user found with the provided username or email.</p>";
+    // No user found alert
+    echo "<script>alert('No user found with the provided username or email.'); window.history.back();</script>";
 }
 
 // Close connection

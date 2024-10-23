@@ -3,34 +3,110 @@ include 'dashboard_flex.php';
 include '../includes/connection.php'; // Assuming this is your PHP file with the sidebar
 $sql = "SELECT category_id, category_name FROM category";
 $result = $conn->query($sql); 
-?>
-<style>
-  /* Ensure the form is scrollable */
-  .scrollable-form-container {
-    max-height: calc(100vh - 120px); /* Adjust height based on your layout */
-    overflow-y: auto;
-    padding: 2px;
-    margin-top: 70px; /* Space after navbar */
-    width: calc(100% - 100px); /* Adjust width to account for sidebar */
+?>  <style>
+/* Reset and Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
 
+body {
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.scrollable-form-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+h3 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #34495e;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 5px;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 15px;
+}
+
+.form-control,
+.form-control-file,
+.form-control select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+}
+
+.form-control:focus,
+textarea:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.2);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+#category-specific-fields {
+  margin-top: 20px;
+}
+
+label {
+  font-weight: 500;
+  color: #34495e;
+}
+
+.form-group.col-md-12 {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
   .form-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-direction: column;
   }
-  button[type="submit"] {
-    margin-top: 20px; /* Adds space above the button */
-    margin-bottom: 40px; /* Adds space below the button for better visibility */
-  }
-  .form-group {
-    flex: 1;
-    min-width: 200px; /* Set a minimum width for input fields */
-  }
-  .error {
-    color: red;
-    font-size: 0.875em;
-  }
+}
 </style>
 
 <div class="scrollable-form-container">

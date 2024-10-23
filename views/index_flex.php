@@ -69,11 +69,6 @@ include '../includes/connection.php'; // Ensure the database connection is inclu
                     </li>
                 </ul>
 
-                <form class="d-flex me-3">
-                    <input class="form-control me-2" type="search" placeholder="Search items" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
-
                 <div class="d-flex">
                     <?php
                     if (isset($_SESSION['username'])) {
@@ -132,5 +127,3 @@ echo '<a href="../process/logout.php">Logout</a>'; // Link to logout
             }
         }
     </script>
-</body>
-</html>

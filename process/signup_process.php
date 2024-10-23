@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors[] = "Invalid email format.";
     }
 
-    // Phone validation (optional, adjust regex according to the country format)
+    // Phone validation
     if (!empty($phone) && !preg_match("/^\d{10,15}$/", $phone)) {
         $errors[] = "Phone number should be between 10 to 15 digits.";
     }
@@ -64,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors[] = "Passwords do not match.";
     }
 
-    // Profile Photo validation (optional)
+    // Profile Photo validation
     if ($profile_photo['error'] === UPLOAD_ERR_OK) {
         $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif');
         $file_ext = pathinfo($profile_photo['name'], PATHINFO_EXTENSION);
@@ -72,50 +72,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (!in_array($file_ext, $allowed_extensions)) {
             $errors[] = "Invalid image format. Allowed formats: jpg, jpeg, png, gif.";
         } else {
-            // Ensure target directory exists
             $target_dir = "../public/profile/";
             if (!is_dir($target_dir)) {
-                mkdir($target_dir, 0777, true); // Create directory if it doesn't exist
+                mkdir($target_dir, 0777, true);
             }
 
-            // Save full path (including directory and filename) in the database
             $photo_name = uniqid() . "." . $file_ext;
             $target_file = $target_dir . $photo_name;
-            $full_path = $target_file; // This is the full path to be saved in the database
+            $full_path = $target_file;
 
-            // Move the uploaded file to the server
             if (!move_uploaded_file($profile_photo['tmp_name'], $target_file)) {
                 $errors[] = "There was an error uploading the profile photo.";
             }
         }
     } else {
-        $full_path = null; // No photo uploaded or an error occurred
+        $full_path = null;
     }
 
     // If no errors, proceed with inserting data into the database
     if (empty($errors)) {
-        // Hash the password before storing it
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Prepare SQL query (saving the full path)
         $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, username, email, phone, address, password, profile_photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssssss", $first_name, $last_name, $username, $email, $phone, $address, $hashed_password, $full_path);
 
-        // Execute and check if the insertion was successful
         if ($stmt->execute()) {
-            echo "Signup successful!";
+            echo "<script>alert('Signup successful!'); window.location.href = '../views/index.php';</script>";
         } else {
-            echo "Error: " . $stmt->error;
+            echo "<script>alert('Error: " . addslashes($stmt->error) . "'); window.history.back();</script>";
         }
 
-        // Close statement and connection
         $stmt->close();
         $conn->close();
     } else {
-        // Display errors
-        foreach ($errors as $error) {
-            echo "<p style='color:red;'>$error</p>";
-        }
+        // Display errors with JavaScript alerts
+        $error_messages = implode("\\n", $errors);
+        echo "<script>alert('The following errors occurred:\\n$error_messages'); window.history.back();</script>";
     }
 }
 ?>

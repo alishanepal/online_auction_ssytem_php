@@ -62,10 +62,10 @@ if (isset($_GET['user_id'])) {
                 echo '</div>';
             }
 
-// Add Edit Profile button
-echo '<div style="text-align: center; margin-top: 20px;">';
-echo '<a href="edit_profile.php?user_id=' . $user['user_id'] . '" class="btn btn-primary">Edit Profile</a>'; // Link to the edit profile page
-echo '</div>';
+            // Add Edit Profile button (to open modal)
+            echo '<div style="text-align: center; margin-top: 20px;">';
+            echo '<button class="btn btn-primary" data-toggle="modal" data-target="#editProfileModal">Edit Profile</button>'; // Open Edit Profile modal
+            echo '</div>';
             echo '</div>'; // Close outer div
         } else {
             echo '<p style="text-align:center; color: red;">User not found.</p>';
@@ -116,6 +116,71 @@ $conn->close();
       </div>
       <div class="modal-body" style="text-align:center;">
         <img src="<?php echo htmlspecialchars($user['id_photo']); ?>" alt="ID Photo" style="max-width: 100%;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Edit Profile -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editProfileForm" action="update_profile.php" method="POST" enctype="multipart/form-data"> <!-- Add enctype -->
+            <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="<?php echo htmlspecialchars($user['first_name']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="<?php echo htmlspecialchars($user['last_name']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" class="form-control" id="address" name="address" value="<?php echo htmlspecialchars($user['address']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="id_no">ID No</label>
+                <input type="text" class="form-control" id="id_no" name="id_no" value="<?php echo htmlspecialchars($user['id_no']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="account_no">Account No</label>
+                <input type="text" class="form-control" id="account_no" name="account_no" value="<?php echo htmlspecialchars($user['account_no']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="profile_photo">Profile Photo</label>
+                <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
+                <small class="form-text text-muted">Leave blank to keep current photo.</small>
+            </div>
+            <div class="form-group">
+                <label for="id_photo">ID Photo</label>
+                <input type="file" class="form-control" id="id_photo" name="id_photo" accept="image/*">
+                <small class="form-text text-muted">Leave blank to keep current photo.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

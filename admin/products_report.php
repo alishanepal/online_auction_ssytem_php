@@ -1,6 +1,7 @@
 <?php
 
 include '../includes/connection.php';
+include 'dashboard_flex.php'; 
 // Ensure the database connection is included
 
 // Query to fetch product report data
@@ -61,21 +62,6 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
     $productsByCategory[$categoryName][] = $row; // Group by category
 }
 ?>
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Report - Online Auction System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-5">
-         <!-- Navigation Button to Dashboard -->
-         <a href="dashboard.php" class="btn btn-success mb-2">Back to Dashboard</a>
         <h2>Product Report</h2>
         
        

@@ -3,28 +3,17 @@ body {
     height: 100vh;
     margin: 0;
     overflow: hidden;
-    font-family: Arial, sans-serif;
-    background-color: #e9ecef; /* Light background color for the body */
 }
 
 .sidebar {
     width: 250px;
-    background-color: #3d4b5a; /* Blue background for sidebar */
+    background-color: #f8f9fa;
     padding: 15px;
     position: fixed;
     height: 100%;
     top: 0;
     left: 0;
-    border-right: 1px solid #0056b3; /* Darker border for contrast */
-}
-
-.sidebar a {
-    color: #ffffff; /* White text for sidebar links */
-    text-decoration: none; /* Remove underline from links */
-}
-
-.sidebar a:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    border-right: 1px solid #ddd;
 }
 
 .main-content {
@@ -33,7 +22,6 @@ body {
     width: calc(100% - 250px);
     height: 100vh; /* Set height of the main content */
     overflow-y: auto; /* Enable scrolling */
-    background-color: #f8f9fa; /* Light gray background for main content */
 }
 
 .navbar {
@@ -41,7 +29,7 @@ body {
     top: 0;
     left: 250px;
     right: 0;
-    background-color: #5791cb; /* Dark gray navbar */
+    background-color: #343a40;
     color: white;
     z-index: 1000;
     height: 60px; /* Adjust height of navbar */
@@ -49,26 +37,8 @@ body {
 
 .section {
     padding: 20px;
-    background-color: #ffffff; /* White background for section */
+    background-color: #ffffff;
     border-radius: 5px;
     margin-top: 80px; /* Adjust margin to push content below the navbar */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
-
-.card {
-    border: 1px solid #ddd; /* Light gray border for cards */
-    border-radius: 5px; /* Rounded corners */
-}
-
-.card-title {
-    color: #007bff; /* Blue title for cards */
-}
-
-.list-group-item {
-    background-color: #f8f9fa; /* Light gray background for list items */
-}
-
-.list-group-item:hover {
-    background-color: #007bff; /* Blue background on hover */
-    color: #ffffff; /* White text on hover */
-}
+  
