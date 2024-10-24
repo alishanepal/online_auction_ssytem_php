@@ -30,46 +30,53 @@ $antiques = [];
 
 // Fetch antiques items
 while ($row = mysqli_fetch_assoc($productReportResult)) {
-    $antiques[] = $row; // Add to antiques array
+    $antiques[$row['status']][] = $row; // Group by status
 }
+
+// Define the order of statuses
+$statusOrder = ['upcoming', 'live', 'closed'];
 ?>
 
 <link rel="stylesheet" href="../public/css/cards.css">
 
-
-    <div class="container mt-5">
-        <h2>Antiques</h2>
-        <div class="auctions">
-            <?php foreach ($antiques as $antique): ?>
-                <a href="product_details.php?product_id=<?php echo htmlspecialchars($antique['product_id']); ?>" class="card mb-4">
-                    <img src="<?php echo htmlspecialchars($antique['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($antique['product_name']); ?>">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($antique['product_name']); ?></h5> <!-- Product name -->
-                        <p class="status">Status: 
-                            <span class="<?php
-                                // Set status color
-                                switch (htmlspecialchars($antique['status'])) {
-                                    case 'live':
-                                        echo 'text-success';
-                                        break;
-                                    case 'closed':
-                                        echo 'text-danger';
-                                        break;
-                                    case 'upcoming':
-                                        echo 'text-warning';
-                                        break;
-                                    default:
-                                        echo 'text-secondary';
-                                }
-                            ?>">
-                                <?php echo htmlspecialchars($antique['status']); ?>
-                            </span>
-                        </p>
-                    </div>
-                </a>
-            <?php endforeach; ?>
-        </div>
+<div class="container mt-5">
+    <h2>Antiques</h2>
+    <div class="auctions">
+        <?php foreach ($statusOrder as $status): ?>
+            <?php if (isset($antiques[$status]) && !empty($antiques[$status])): ?>
+                
+                <?php foreach ($antiques[$status] as $antique): ?>
+                    <a href="product_details.php?product_id=<?php echo htmlspecialchars($antique['product_id']); ?>" class="card mb-4">
+                        <img src="<?php echo htmlspecialchars($antique['image_url']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($antique['product_name']); ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($antique['product_name']); ?></h5> <!-- Product name -->
+                            <p class="status">Status: 
+                                <span class="<?php
+                                    // Set status color
+                                    switch (htmlspecialchars($antique['status'])) {
+                                        case 'live':
+                                            echo 'text-success';
+                                            break;
+                                        case 'closed':
+                                            echo 'text-danger';
+                                            break;
+                                        case 'upcoming':
+                                            echo 'text-warning';
+                                            break;
+                                        default:
+                                            echo 'text-secondary';
+                                    }
+                                ?>">
+                                    <?php echo htmlspecialchars($antique['status']); ?>
+                                </span>
+                            </p>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        <?php endforeach; ?>
     </div>
+</div>
 </html>
 
 <?php

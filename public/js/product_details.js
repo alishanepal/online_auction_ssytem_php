@@ -33,7 +33,6 @@ function submitBid(userId, productId) {
     // Check if bid amount is valid
     if (isNaN(bidAmount) || bidAmount < currentBid) {
         alert("Your bid must be at least $" + currentBid.toFixed(2));
-        bidInput.placeholder = "Minimum bid: $" + currentBid.toFixed(2);
         return; // Exit the function if the bid is not valid
     }
 

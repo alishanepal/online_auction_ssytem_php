@@ -186,6 +186,15 @@ $conn->close();
                 <input type="text" class="form-control" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
             </div>
             <div class="form-group">
+                <label for="id_no">ID_number</label>
+                <input type="text" class="form-control" id="id_no" name="id_no" value="<?php echo htmlspecialchars($user['id_no']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Account_number</label>
+                <input type="text" class="form-control" id="account_no" name="account_no" value="<?php echo htmlspecialchars($user['account_no']); ?>" required>
+            </div>
+            
+            <div class="form-group">
                 <label for="profile_photo">Profile Photo</label>
                 <input type="file" class="form-control" id="profile_photo" name="profile_photo">
             </div>

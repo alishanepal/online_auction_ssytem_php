@@ -20,27 +20,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $profile_photo = '';
     if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] == UPLOAD_ERR_OK) {
         $profile_photo = $profileDir . basename($_FILES['profile_photo']['name']);
-        if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $profile_photo)) {
-            $profile_photo = '../public/profile/' . basename($_FILES['profile_photo']['name']); // Store relative path
-        } else {
-            echo "Failed to upload profile photo.";
+        if (!move_uploaded_file($_FILES['profile_photo']['tmp_name'], $profile_photo)) {
+            echo "<script>alert('Failed to upload profile photo.'); window.history.back();</script>";
             exit;
         }
+        $profile_photo = '../public/profile/' . basename($_FILES['profile_photo']['name']); // Store relative path
     }
 
     // Handle ID photo upload
     $id_photo = '';
     if (isset($_FILES['id_photo']) && $_FILES['id_photo']['error'] == UPLOAD_ERR_OK) {
         $id_photo = $idPhotoDir . basename($_FILES['id_photo']['name']);
-        if (move_uploaded_file($_FILES['id_photo']['tmp_name'], $id_photo)) {
-            $id_photo = '../public/id_photo/' . basename($_FILES['id_photo']['name']); // Store relative path
-        } else {
-            echo "Failed to upload ID photo.";
+        if (!move_uploaded_file($_FILES['id_photo']['tmp_name'], $id_photo)) {
+            echo "<script>alert('Failed to upload ID photo.'); window.history.back();</script>";
             exit;
         }
+        $id_photo = '../public/id_photo/' . basename($_FILES['id_photo']['name']); // Store relative path
     }
 
-    // Update users table with profile photo
+    // Update users table
     $userSql = "UPDATE users SET 
                     username = ?, 
                     first_name = ?, 
@@ -62,11 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $userStmt->execute();
         $userStmt->close();
     } else {
-        echo "Error preparing user statement: " . $conn->error;
+        echo "<script>alert('Error updating user details: " . $conn->error . "'); window.history.back();</script>";
         exit;
     }
 
-    // Update additional_info table with ID photo
+    // Update additional_info table
     $infoSql = "UPDATE additional_info SET 
                     id_no = ?, 
                     account_no = ?, 
@@ -83,11 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $infoStmt->execute();
         $infoStmt->close();
     } else {
-        echo "Error preparing info statement: " . $conn->error;
+        echo "<script>alert('Error updating additional info: " . $conn->error . "'); window.history.back();</script>";
         exit;
     }
 
-    echo 'Profile updated successfully.';
+    echo "<script>alert('Profile updated successfully.'); window.location.href = 'profile.php?user_id=$user_id';</script>";
     $conn->close();
 }
 ?>

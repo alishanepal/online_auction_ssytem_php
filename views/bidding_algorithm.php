@@ -62,31 +62,40 @@ function getPreviousHighestBid($conn, $product_id) {
 }
 
 /**
- * Calculate the dynamic interval.
- */
+ * Calculate the dynamic interval.*/
 function calculateDynamicInterval($currentBid, $previousBid, $originalInterval) {
-    $threshold = 0.2; // 20% increase threshold
+    // Define percentage thresholds for bidding jumps
+    $thresholds = [
+        0.05, // 5% increase
+        0.10, // 10% increase
+        0.15, // 15% increase
+        0.20, // 20% increase
+        0.25  // 25% increase
+    ];
 
     // If there are no previous bids, reset to the original interval
     if ($previousBid == 0) {
         return $originalInterval; 
     }
 
-    $bidDifference = $currentBid - $previousBid;
+    // Calculate the percentage increase
+    $percentageIncrease = ($currentBid - $previousBid) / $previousBid;
 
-    // Adjust interval only if the bid increase exceeds the threshold
-    if ($bidDifference >= ($previousBid * $threshold)) {
-        if ($currentBid < 500) {
-            return $originalInterval;
-        } elseif ($currentBid < 1000) {
-            return $originalInterval * 2;
-        } else {
-            return $originalInterval * 5;
-        }
+    // Adjust interval based on percentage increase
+    if ($percentageIncrease >= $thresholds[4]) { // 25% increase
+        return $originalInterval * 5; // Increase interval significantly
+    } elseif ($percentageIncrease >= $thresholds[3]) { // 20% increase
+        return $originalInterval * 4; // Moderate increase
+    } elseif ($percentageIncrease >= $thresholds[2]) { // 15% increase
+        return $originalInterval * 3; // Moderate increase
+    } elseif ($percentageIncrease >= $thresholds[1]) { // 10% increase
+        return $originalInterval * 2; // Small increase
+    } elseif ($percentageIncrease >= $thresholds[0]) { // 5% increase
+        return $originalInterval * 1.5; // Slight increase
     }
+
     return $originalInterval; // No change if the increase is small
 }
-
 /**
  * Fetch category-specific extra details.
  */

@@ -214,7 +214,7 @@ $conn->close();
             </div>
             <div class="form-group col-md-6">
                 <label for="reservePrice">Reserve Price (optional)</label>
-                <input type="number" class="form-control" id="reservePrice" name="reservePrice" step="10" min="0" required>
+                <input type="number" class="form-control" id="reservePrice" name="reservePrice" step="10" min="0" >
                 <div class="error" id="reservePriceError"></div>
             </div>
         </div>

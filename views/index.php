@@ -41,6 +41,20 @@ $closedAuctions = mysqli_query($conn, "
 
 </head>
 <body>
+<h1>Live Auctions</h1>
+<div class="auctions" id="live">
+    <?php while ($auction = mysqli_fetch_assoc($liveAuctions)): ?>
+        <a href="product_details.php?product_id=<?php echo htmlspecialchars($auction['product_id']); ?>" class="card">
+            <img src="<?php echo htmlspecialchars($auction['image_url']); ?>" alt="<?php echo htmlspecialchars($auction['product_name']); ?>">
+            <h3><?php echo htmlspecialchars($auction['product_name']); ?></h3>
+            <p class="status countdown" 
+               data-end="<?php echo strtotime($auction['end_date']); ?>">
+               <!-- "Ends in" timer will go here -->
+            </p>
+        </a>
+    <?php endwhile; ?>
+</div>
+
     <h1>Upcoming Auctions</h1>
 <div class="auctions" id="upcoming">
     <?php while ($auction = mysqli_fetch_assoc($upcomingAuctions)): ?>
@@ -55,19 +69,7 @@ $closedAuctions = mysqli_query($conn, "
     <?php endwhile; ?>
 </div>
 
-<h1>Live Auctions</h1>
-<div class="auctions" id="live">
-    <?php while ($auction = mysqli_fetch_assoc($liveAuctions)): ?>
-        <a href="product_details.php?product_id=<?php echo htmlspecialchars($auction['product_id']); ?>" class="card">
-            <img src="<?php echo htmlspecialchars($auction['image_url']); ?>" alt="<?php echo htmlspecialchars($auction['product_name']); ?>">
-            <h3><?php echo htmlspecialchars($auction['product_name']); ?></h3>
-            <p class="status countdown" 
-               data-end="<?php echo strtotime($auction['end_date']); ?>">
-               <!-- "Ends in" timer will go here -->
-            </p>
-        </a>
-    <?php endwhile; ?>
-</div>
+
 
 
 <h1>Closed Auctions</h1>

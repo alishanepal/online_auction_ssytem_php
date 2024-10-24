@@ -2,7 +2,6 @@
 include '../includes/connection.php';
 include 'index_flex.php';
 
-
 // Query to fetch paintings data
 $productReportQuery = "
     SELECT 
@@ -32,10 +31,13 @@ if (!$productReportResult) {
 
 $paintings = [];
 
-// Fetch paintings
+// Fetch paintings and group them by status
 while ($row = mysqli_fetch_assoc($productReportResult)) {
-    $paintings[] = $row;
+    $paintings[$row['status']][] = $row;
 }
+
+// Define the order of statuses
+$statusOrder = ['upcoming', 'live', 'closed'];
 ?>
 
 <!DOCTYPE html>
@@ -54,38 +56,41 @@ while ($row = mysqli_fetch_assoc($productReportResult)) {
             <?php if (empty($paintings)): ?>
                 <p>No paintings found.</p>
             <?php else: ?>
-                <?php foreach ($paintings as $painting): ?>
-                    <a href="product_details.php?product_id=<?php echo htmlspecialchars($painting['product_id']); ?>" class="card mb-4">
-                        <img src="<?php echo htmlspecialchars($painting['image_url']); ?>" alt="<?php echo htmlspecialchars($painting['product_name']); ?>">
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($painting['product_name']); ?></h5>
-                            <p class="status">Status: 
-                                <span class="<?php
-                                    switch (htmlspecialchars($painting['status'])) {
-                                        case 'live':
-                                            echo 'text-success';
-                                            break;
-                                        case 'closed':
-                                            echo 'text-danger';
-                                            break;
-                                        case 'upcoming':
-                                            echo 'text-warning';
-                                            break;
-                                        default:
-                                            echo 'text-secondary';
-                                    }
-                                ?>">
-                                    <?php echo htmlspecialchars($painting['status']); ?>
-                                </span>
-                            </p>
-                        </div>
-                    </a>
+                <?php foreach ($statusOrder as $status): ?>
+                    <?php if (isset($paintings[$status]) && !empty($paintings[$status])): ?>
+                        <?php foreach ($paintings[$status] as $painting): ?>
+                            <a href="product_details.php?product_id=<?php echo htmlspecialchars($painting['product_id']); ?>" class="card mb-4">
+                                <img src="<?php echo htmlspecialchars($painting['image_url']); ?>" alt="<?php echo htmlspecialchars($painting['product_name']); ?>">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($painting['product_name']); ?></h5>
+                                    <p class="status text-center">
+                                        Status: 
+                                        <span class="<?php
+                                            switch (htmlspecialchars($painting['status'])) {
+                                                case 'live':
+                                                    echo 'text-success';
+                                                    break;
+                                                case 'closed':
+                                                    echo 'text-danger';
+                                                    break;
+                                                case 'upcoming':
+                                                    echo 'text-warning';
+                                                    break;
+                                                default:
+                                                    echo 'text-secondary';
+                                            }
+                                        ?>">
+                                            <?php echo htmlspecialchars($painting['status']); ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
-
-    
 </body>
 </html>
 

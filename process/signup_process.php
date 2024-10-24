@@ -14,48 +14,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $confirm_password = $_POST['confirm_password'];
     $profile_photo = $_FILES['profile_photo'];
 
+    // Check if all required fields are filled (excluding the optional photo)
+    if (
+        empty($first_name) || empty($last_name) || empty($username) ||
+        empty($email) || empty($phone) || empty($address) ||
+        empty($password) || empty($confirm_password)
+    ) {
+        echo "<script>alert('Please fill in all the required fields.'); window.history.back();</script>";
+        exit();
+    }
+
     // First Name validation
-    if (empty($first_name)) {
-        $errors[] = "First name is required.";
-    } elseif (!preg_match("/^[a-zA-Z]+$/", $first_name)) {
+    if (!preg_match("/^[a-zA-Z]+$/", $first_name)) {
         $errors[] = "First name can only contain alphabets.";
     }
 
     // Last Name validation
-    if (empty($last_name)) {
-        $errors[] = "Last name is required.";
-    } elseif (!preg_match("/^[a-zA-Z]+$/", $last_name)) {
+    if (!preg_match("/^[a-zA-Z]+$/", $last_name)) {
         $errors[] = "Last name can only contain alphabets.";
     }
 
     // Username validation
-    if (empty($username)) {
-        $errors[] = "Username is required.";
-    } elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
+    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
         $errors[] = "Username can only contain letters, numbers, and underscores.";
     }
 
     // Email validation
-    if (empty($email)) {
-        $errors[] = "Email is required.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Invalid email format.";
     }
 
     // Phone validation
-    if (!empty($phone) && !preg_match("/^\d{10,15}$/", $phone)) {
+    if (!preg_match("/^\d{10,15}$/", $phone)) {
         $errors[] = "Phone number should be between 10 to 15 digits.";
     }
 
-    // Address validation
-    if (empty($address)) {
-        $errors[] = "Address is required.";
-    }
-
     // Password validation
-    if (empty($password)) {
-        $errors[] = "Password is required.";
-    } elseif (strlen($password) < 6) {
+    if (strlen($password) < 6) {
         $errors[] = "Password must be at least 6 characters.";
     }
 
@@ -64,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors[] = "Passwords do not match.";
     }
 
-    // Profile Photo validation
+    // Profile Photo validation (optional)
     if ($profile_photo['error'] === UPLOAD_ERR_OK) {
         $allowed_extensions = array('jpg', 'jpeg', 'png', 'gif');
         $file_ext = pathinfo($profile_photo['name'], PATHINFO_EXTENSION);
@@ -86,20 +81,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     } else {
-        $full_path = null;
+        $full_path = null; // If no photo is uploaded, set the path to null
     }
 
     // If no errors, proceed with inserting data into the database
     if (empty($errors)) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, username, email, phone, address, password, profile_photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssssss", $first_name, $last_name, $username, $email, $phone, $address, $hashed_password, $full_path);
+        $stmt = $conn->prepare(
+            "INSERT INTO users (first_name, last_name, username, email, phone, address, password, profile_photo) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param(
+            "ssssssss", $first_name, $last_name, $username, $email, $phone, $address, $hashed_password, $full_path
+        );
 
-        if ($stmt->execute()) {
-            echo "<script>alert('Signup successful!'); window.location.href = '../views/index.php';</script>";
-        } else {
-            echo "<script>alert('Error: " . addslashes($stmt->error) . "'); window.history.back();</script>";
+        try {
+            if ($stmt->execute()) {
+                echo "<script>alert('Signup successful!'); window.location.href = '../views/index.php';</script>";
+            }
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() == 1062) { // Error code 1062 means duplicate entry
+                echo "<script>alert('Username already exists. Please choose a different one.'); window.history.back();</script>";
+            } else {
+                echo "<script>alert('Error: " . addslashes($e->getMessage()) . "'); window.history.back();</script>";
+            }
         }
 
         $stmt->close();
@@ -107,7 +113,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Display errors with JavaScript alerts
         $error_messages = implode("\\n", $errors);
-        echo "<script>alert('The following errors occurred:\\n$error_messages'); window.history.back();</script>";
+        echo "<script>alert('\\n$error_messages'); window.history.back();</script>";
     }
 }
-?>
